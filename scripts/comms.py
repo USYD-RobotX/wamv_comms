@@ -1,161 +1,211 @@
 #!/usr/bin/env python
-import datetime
+
+import datetime # Gets current date & time.
 import socket
 import std_msgs
-import rospy
+import rospy # Python package for ROS
 
-def formatMessage(data):
-    result = "$"
-    result = result+data
+
+### GLOBAL VARIABLES
+
+TEAMID = 'DESIG' # Assigned by technical director.
+# Also defined in conman.py
+
+s = 0 # Placeholder for stream socket defined in conman_init()
+
+
+
+def formatAndSend(header, data, addID=1): # Add header, footer, & checksum to message
+    
+    result = "$" + header + "," # Add to start of message
+
+    now = datetime.datetime.now() # Get current time & date.
+
+    # Add current date & time to message.
+    result = result+str(now.day)[0:2] + str(now.month)[0:2]+str(now.year)[0:2]+","
+    result = result+str(now.hour)[0:2] + str(now.minute)[0:2]+str(now.second)[0:2]+","
+
+    if addID:
+        result = result + TEAMID + ","
+    
+    result = result+data # Add message in the middle.
+
+    # Determine checksum
     checksum = 0
     for i in data:
         checksum = checksum ^ ord(i)
+    
     result = result+"*"
-    result = result+hex(checksum)[-2:]  # checksum
+    result = result+hex(checksum)[-2:]  # Add checksum to message.
     result = result + '\r\n'
-    return result
 
-
-'''
-state: a dictionary containing:
-latitude (float)
-latNS: (char)
-longitude (float)
-longEW: (char)
-mode: (int) 1: teleop 2:auto 3:killed
-AUVstat (int): basically always 1 because we have no AUV
-'''
-TEAMID = 'DESIG'
-
-
-def sendHeartbeatMessage(state):
-    k = datetime.datetime.now()
-    message = 'RXHRB,'
-    message = message+str(k.day)[0:2]+str(k.month)[0:2]+str(k.year)[0:2]+","
-    message = message+str(k.hour)[0:2] + \
-                          str(k.minute)[0:2]+str(k.second)[0:2]+","
-    message = message+str(state['latitude'])+","+state['latNS'] + \
-    ","+str(state['longitude'])+","+state['longEW']+","
-    message = message+TEAMID+","
-    message = message+str(state['mode'])+","
-    message = message+str(state['AUVstat'])
-    message=formatMessage(message)
     global s
     try:
-        s.send(message)
+        s.send(result) # Send message.
     except Exception:
-        print("message "+message+" not sent!")
+        print("Message "+message+" not sent!")
+    
+    return result # Final fomatted message.
 
 
-'''DockSymMessage
-state: a dictionary containing:
-active_entrance_gate (int)
-active_exit_gate (int)
-light_buoy_active (char) N or Y
-lignt_pattern (string)
-'''
+
+def sendHeartbeatMessage(state): # Send the heartbeat message (C3).
+    # To be sent at frequency of 1 Hz.
+    '''
+    state: a dictionary containing:
+        latitude: (float)
+        latNS: (char) N or S
+        longitude: (float)
+        longEW: (char) E or W
+        mode: (int):
+            1: teleop,
+            2: auto,
+            3: killed
+        UAVstat: (int):
+            1: Stowed, AUV secured to USV
+            2: Deployed
+            3: Faulted.
+    '''
+    
+    # Add latitude & longitude.
+    message = str(state['latitude'])+","+state['latNS']+","
+    message = message+str(state['longitude'])+","+state['longEW']+","
+
+    message = message+TEAMID+"," # Add team ID
+
+    message = message+str(state['mode'])+"," # Add mode.
+    # Mode 1 = Remote operated.
+    # Mode 2 = Autonomous.
+    # Mode 3 = Killed.
+    
+    message = message+str(state['UAVstat']) # Add UAV status
+    # 1: Stowed
+    # 2: Deployed
+    # 3: Faulted. 
+    
+    message=formatAndSend("RXHRB", message, 0) # Format message.
+    return message
 
 
-def sendExitGatesMessage(state):
-    k = datetime.datetime.now()
-    message = 'RXGAT,'
-    message = message+str(k.day)[0:2]+str(k.month)[0:2]+str(k.year)[0:2]+","
-    message = message+str(k.hour)[0:2] + \
-    str(k.minute)[0:2]+str(k.second)[0:2]+","
-    message = message+TEAMID+","
-    message = message+str(state['active_entrance_gate'])+","
-    message = message+str(state["active_exit_gate"])+","
-    message = message+state["light_buoy_active"]+","
-    message = message+state["light_pattern"]
-    message = formatMessage(message)
+
+def sendGatesMessage(state): # Send message for enterance & exit gates (C4).
+    # To report gate where active beacon detected.
+    '''
+    state: a dictionary containing:
+        active_entrance_gate (int)
+        active_exit_gate (int)
+    '''
+  
+    # Add active gates
+    message = str(state['active_entrance_gate'])+","
+    message = message+str(state["active_exit_gate"])
+    
+    message = formatAndSend('RXGAT', message) # Format message.
+    return message
+
+
+
+def sendFollowPathMessage(state): # Send message to signal completion of path. (C5)
+    
+    '''
+    state: a dictionary containing:
+        finished (int):
+            1: In progress
+            2: Completed
+    '''
+    
+    message = state["finished"] # Add light pattern.
+    
+    message = formatAndSend("RXPTH", message) # Format with checksum
+    return message
+
+
+
+def sendWildlifeMessage(state): # Send message to signal completion of path. (C6)
+    '''
+    state: a dictionary containing:
+        num_detected (int): 1 to 3
+        first_wildlife (char): P or C or T
+        seccond_wildlife (char): P or C or T
+        third_wildlife (char): P or C or T
+    '''
+    
+    message = state["finished"] # Add light pattern.
+    
+    message = formatAndSend("RXENC", message) # Format with checksum
+    return message
+
+
+def sendScanCodeMessage(state): # Send message for light tower (C7)
+
+    '''
+    state: a dictionary containing:
+        lignt_pattern (string): Order of ifentified lights. eg. "RBG"
+    '''
+    
+    message = state["light_pattern"] # Add light pattern.
+    
+    message = formatAndSend("RXCOD", message) # Format with checksum
+    return message
+
+
+def sendDockMessage(state): # Send message for Detect & Dock (C8)
+    '''
+    state: a dictionary containing:
+        color (char): R or G or B
+        ams_status (int):
+            1: Docking
+            2: Complete
+    '''
+    
+    message = state["color"]+","
+    message = message+state["ams_status"]
+    
+    message = formatAndSend("RXDOK", message)
+    return message
+
+
+
+def sendFlingMessage(state): # Send message for find and fling (C9).
+    '''
+    state: a dictionary containing:
+        color (char): R or G or B
+        fling_status (int):
+            1: Scanning
+            2: Flinging
+    '''
+    
+    message = state["color"]+","
+    message = message+state["fling_status"]
+    
+    message = formatAndSend("RXFLG", message)
+    return message
+
+
+
+def sendUAVReplenishmentMessage(state):
+    pass
+
+
+def sendSearchAndReportMessage(state):
+    pass
+
+
+
+BUFFER_SIZE = 1024 # Possibly Unused?
+
+
+def conman_init(TCP_IP,TCP_PORT,TID): # Initialise communications manager.
+    
     global s
-    try:
-        s.send(message)
-    except Exception:
-        print("message "+message+" not sent!")
+    
+    global TEAMID # Access default team ID.
+    TEAMID=TID # Allow extermial TEAMID definition.
+    
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Create stream socket.
+    s.connect((TCP_IP, TCP_PORT)) # Connect socket.
 
 
-'''
-state: a dictionary containing:
-lignt_pattern (string)
-'''
-
-
-def sendScanCodeMessage(state):
-    k = datetime.datetime.now()
-    message = 'RXCOD,'
-    message = message+str(k.day)[0:2]+str(k.month)[0:2]+str(k.year)[0:2]+","
-    message = message+str(k.hour)[0:2] + \
-    str(k.minute)[0:2]+str(k.second)[0:2]+","
-    message = message+TEAMID+","
-    message = message+state["light_pattern"]
-    message = formatMessage(message)
-    global s
-    try:
-        s.send(message)
-    except Exception:
-        print("message "+message+" not sent!")
-
-
-'''
-state: a dictionary containing:
-color (char)
-shape (string)
-'''
-
-
-def sendDockSymMessage(state):
-    k = datetime.datetime.now()
-    message = 'RXDOK,'
-    message = message+str(k.day)[0:2]+str(k.month)[0:2]+str(k.year)[0:2]+","
-    message = message+str(k.hour)[0:2] + \
-    str(k.minute)[0:2]+str(k.second)[0:2]+","
-    message = message+TEAMID+","
-    message = message+state["color"]+","
-    message = message+state["shape"]
-    message = formatMessage(message)
-    global s
-    try:
-        s.send(message)
-    except Exception:
-        print("message "+message+" not sent!")
-
-
-'''
-state: a dictionary containing:
-color (char)
-shape (string)
-'''
-
-
-def sendDeliverMessage(state):
-    k = datetime.datetime.now()
-    message = 'RXDEL,'
-    message = message+str(k.day)[0:2]+str(k.month)[0:2]+str(k.year)[0:2]+","
-    message = message+str(k.hour)[0:2] + \
-    str(k.minute)[0:2]+str(k.second)[0:2]+","
-    message = message+TEAMID+","
-    message = message+state["color"]+","
-    message = message+state["shape"]
-    message = formatMessage(message)
-    global s
-    try:
-        s.send(message)
-    except Exception:
-        print("message "+message+" not sent!")
-
-
-BUFFER_SIZE = 1024
-s = 0
-
-
-def conman_init(TCP_IP,TCP_PORT,TID):
-    global s
-    global TEAMID
-    TEAMID=TID
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((TCP_IP, TCP_PORT))
-
-if __name__=='__main__':
-    conman_init('0.0.0.0',9999)
-    # sendDeliverMessage({'color':'A','shape':'TRIAN','longitude':2,'longEW':'E','mode':3,'AUVstat':1})
+if __name__=='__main__': # Not imported as a module.
+    conman_init('0.0.0.0',9999) # Initialise communications manager.
+    
