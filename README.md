@@ -73,7 +73,7 @@ state: a dictionary containing:
 *Not yet implemented.*
 
 
-**UAV search & report message (C9): `sendSearchAndReportMessage(state)`**
+**UAV search & report message (C10): `sendSearchAndReportMessage(state)`**
 
 *Not yet implemented.*
 
