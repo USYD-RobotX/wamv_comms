@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import datetime # Gets current date & time.
 import socket
@@ -14,9 +14,10 @@ TEAMID = 'DESIG' # Assigned by technical director.
 s = 0 # Placeholder for stream socket defined in conman_init()
 
 
-
+print("Comms Started")
 def formatAndSend(header, data, addID=1): # Add header, footer, & checksum to message
     
+    print("Inside foramat and send")
     result = "$" + header + "," # Add to start of message
 
     now = datetime.datetime.now() # Get current time & date.
@@ -38,13 +39,15 @@ def formatAndSend(header, data, addID=1): # Add header, footer, & checksum to me
     result = result+"*"
     result = result+hex(checksum)[-2:]  # Add checksum to message.
     result = result + '\r\n'
+    result_bytes = result.encode() #encoding string to byte for socket.send()
 
     global s
     try:
-        s.send(result) # Send message.
+        s.send(result_bytes) # Send message.
+        print("Message: "+result)
     except Exception:
-        print("Message "+message+" not sent!")
-    
+        print("Message "+result+" not sent!")
+   
     return result # Final fomatted message.
 
 

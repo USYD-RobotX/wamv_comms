@@ -1,8 +1,8 @@
 <launch>
 <param name="ip" value="localhost"/>
-<param name="port" value="12345"/>
+<param name="port" value="2000"/>
 <param name="TID" value="USYD_ROWBOT"/>
 <param name="debug" value="true"/>
-<node name="communicator" type="conman.py" pkg="rowbot_comms">
+<node name="communicator" type="conman.py" pkg="wamv_comms">
 </node>
 </launch>

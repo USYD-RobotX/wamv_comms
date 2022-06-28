@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy # ROS python module.
 from std_msgs.msg import *
@@ -10,13 +10,24 @@ class _conman(): # Conman: connection manager. It automatically sends a heartbea
 
 
     def __init__(self): # Initialise communication manager.
-        
-        ip = rospy.get_param('/ip') # Get ROS IP address
-        port = rospy.get_param('/port') # Get ROS port.
-        TMID = rospy.get_param('/TID') # Get team ID defined through ROS.
-        
-        mode=3 # Default mode = Killed.
+       
+        print("conman started")
+        ip = "localhost" # Not sure about this.
+        if (rospy.has_param('/ip')):
+                ip = rospy.get_param('/ip') # Get ROS IP address
 
+
+        port = 2000 # Complete guess.
+        if (rospy.has_param('/port')):
+                port = rospy.get_param('/port') # Get ROS port.
+        
+
+        TMID = "XBZXC" # Needs to be set for 2022 team ID.
+        if (rospy.has_param('/TID')):
+                TMID = rospy.get_param('/TID') # Get team ID defined through ROS.
+        
+
+        mode=3 # Default mode = Killed.\
         # Get operating mode if defined through ROS, else assume killed.
         if (rospy.has_param('/mode')):
             mode=rospy.get_param('/mode')
@@ -50,7 +61,7 @@ class _conman(): # Conman: connection manager. It automatically sends a heartbea
                 'longEW': 'E',
                 'latNS': 'N',
                 'mode': mode,
-                'AUVstat': 1
+                'UAVstat': 1
             }
             self.hbready = True # Heatbeat is now ready with dummy coords.
             
@@ -92,6 +103,7 @@ class _conman(): # Conman: connection manager. It automatically sends a heartbea
 
 conman = _conman() # Init communtiations manager as class.
 
+print("Started Program")
 rospy.init_node("communicator") # Create ROS communicator node.
 
 rate = rospy.Rate(1) # Set transmission frequency of 1 Hz.
@@ -99,7 +111,7 @@ rate = rospy.Rate(1) # Set transmission frequency of 1 Hz.
 
 while not rospy.is_shutdown():
 
-    
+    print("Inside Loop")
     fakeState = {} # Not sure what this is for ... ?
     conman.send_heartbeat() # Broadcast the heartbeat message
 
