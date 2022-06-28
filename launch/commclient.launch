@@ -3,6 +3,5 @@
 <param name="port" value="2000"/>
 <param name="TID" value="USYD_ROWBOT"/>
 <param name="debug" value="true"/>
-<node name="communicator" type="conman.py" pkg="wamv_comms">
-</node>
+<node pkg="wamv_comms" type="conman.py" name="communicator" output="screen"/>
 </launch>
