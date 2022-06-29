@@ -26,7 +26,7 @@ Section C1 of the 2022 competition handbook states that:
 > During operation, teams are provided with a hard wired connection (RJ-45) to the Technical Director's network. This connection must be used to transmit the AMS heartbeat and other reports.
 > When connected to the Technical Director network, the team’s computer must request an IP address from a Technical Director Network DHCP server. Once connected, they should establish a TCP connection to a server with an address and port number, correlating to the selected course. Address and port numbers for each course will be provided during the event. 
 
-***At present, this heartbeat script will transmit the heartbeat as a TCP message to a device that is connected to the same network as the WAMV, or te the WAMV's own wireless notwork (untested).** This program does not handle the process of requesting an IP address from the DHCP server, or of transferring the message from via a hard wired connection from the base station over the Technical Director's network.*
+***At present, this heartbeat script will transmit the heartbeat as a TCP message to a device that is connected to the same network as the WAMV, or te the WAMV's own wireless network (untested).** This program does not handle the process of requesting an IP address from the DHCP server, or of transferring the message from via a hard wired connection from the base station over the Technical Director's network.*
 
 
 ## Launching the heartbeat using ROS within a Docker container:
