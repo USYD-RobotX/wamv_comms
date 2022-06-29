@@ -1,5 +1,5 @@
-WAMV Communications.
-====================
+WAMV Heartbeat & Communications.
+================================
 
 Scripts that govern the WAMV status heartbeat and the transmission of task specific messages for the 2022 RobotX competition.
 
