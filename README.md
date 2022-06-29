@@ -5,10 +5,83 @@ Scripts that govern the WAMV status heartbeat and the transmission of task speci
 
 The status heartbeat is handled entirely by these scripts, and should not need to be interacted with by any other component of the WAMV software. Note that the status heartbeat is that described by appendix C3 of the 2022 competition handbook. *This is entirely different to the 3 LCM heartbeats that are used for process coordination.*
 
-Unlike the heartbeat, the task specific messages exist as python functions in `wamv_comms/scripts/comms.py`. To send these messages, the script responsible for running the task must call the functions from `comms.py` as defined below.
+
+## Configuring heartbeat parameters: Port, team ID, and IP address.
+
+The status heartbeat is managed by the `conman.py` script, which imports `comms.py` as a module. Ths script requires the following parameters to be defined. By default, these are defined with dummy values in `robotx2022/robotx_ws/src/wamv_comms/launch/commclient.launch`. 
+
+```
+<launch>
+<param name="ip" value="localhost"/>
+<param name="port" value="2000"/>
+<param name="TID" value="USYD_ROWBOT"/>
+<param name="debug" value="true"/>
+<node pkg="wamv_comms" type="conman.py" name="communicator" output="screen"/>
+</launch>
+```
+
+The heartbeat script will transmit the heartbeat message to the defined IP and port using the Python Socket module. *Note: As of 29/06/21, this is untested.*
+
+Section C1 of the 2022 competition handbook states that:
+> During operation, teams are provided with a hard wired connection (RJ-45) to the Technical Director's network. This connection must be used to transmit the AMS heartbeat and other reports.
+> When connected to the technical director's network, the team's computer must request an IP address from a Technical Director Network DHCP server. Once connected, they shpould establish a TCP connection to a server with an address and port 
+
+
+
+
+## Launching the heartbeat using ROS within a Docker container:
+
+The status heartbeat is setup as a ROS node within the `robotx_ws` catkin workspace. The following steps describe how to directly launch the status  heartbeat.
+
+**Step 1:** Connect to the WAMV via ssh, and start the `robotx_ros` Docker container uning the method described in the operating instructions document (on Trello).
+
+**Step 2:** Navigate to the workspace folder using `cd robotx2022/robotx_ws/`.
+
+**Step 3:** Run `source devel/setup.bash`.
+
+**Step 4:** Launch the status heartbeat ROS node using `roslaunch wamv_comms commclient.launch`. Below is an example of the output given by launching the ROS node, using dummy values for the port and IP, and with the GPS disconnected.
+
+```
+root@wamv:/robotx2022/robotx_ws# roslaunch wamv_comms commclient.launch 
+... logging to /root/.ros/log/dd79eb12-f742-11ec-b131-0030641daa10/roslaunch-wamv-937.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+
+started roslaunch server http://wamv:46417/
+
+SUMMARY
+========
+
+PARAMETERS
+ * /TID: USYD_ROWBOT
+ * /debug: True
+ * /ip: localhost
+ * /port: 2000
+ * /rosdistro: noetic
+ * /rosversion: 1.15.14
+
+NODES
+  /
+    communicator (wamv_comms/conman.py)
+
+ROS_MASTER_URI=http://localhost:11311
+
+process[communicator-1]: started with pid [945]
+conman started
+
+Sent message: $RXHRB,29620,1384,0,N,0,E,USYD_ROWBOT,3,1*5e
+Sent message: $RXHRB,29620,1385,0,N,0,E,USYD_ROWBOT,3,1*5e
+Sent message: $RXHRB,29620,1386,0,N,0,E,USYD_ROWBOT,3,1*5e
+Sent message: $RXHRB,29620,1387,0,N,0,E,USYD_ROWBOT,3,1*5e
+...
+```
+
+
 
 ## Functions and parameters required to transmit task specific status messages:
 
+Unlike the heartbeat, the task specific messages exist as python functions in `wamv_comms/scripts/comms.py`. To send these messages, the script responsible for running the task must call the functions from `comms.py` as defined below.
 
 **Enterance & exit gates message (C4): `sendGatesMessage(state)`**
 
