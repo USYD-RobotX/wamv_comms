@@ -20,13 +20,13 @@ The status heartbeat is managed by the `conman.py` script, which imports `comms.
 </launch>
 ```
 
-The heartbeat script will transmit the heartbeat message to the defined IP and port using the Python Socket module. *Note: As of 29/06/21, this is untested.*
+The heartbeat script will transmit the heartbeat message to the defined IP and port using the Python Socket module.
 
 Section C1 of the 2022 competition handbook states that:
 > During operation, teams are provided with a hard wired connection (RJ-45) to the Technical Director's network. This connection must be used to transmit the AMS heartbeat and other reports.
-> When connected to the technical director's network, the team's computer must request an IP address from a Technical Director Network DHCP server. Once connected, they shpould establish a TCP connection to a server with an address and port 
+> When connected to the Technical Director network, the team’s computer must request an IP address from a Technical Director Network DHCP server. Once connected, they should establish a TCP connection to a server with an address and port number, correlating to the selected course. Address and port numbers for each course will be provided during the event. 
 
-
+***At present, this heartbeat script will transmit the heartbeat as a TCP message to a device that is connected to the same network as the WAMV, or te the WAMV's own wireless notwork (untested).** This program does not handle the process of requesting an IP address from the DHCP server, or of transferring the message from via a hard wired connection from the base station over the Technical Director's network.*
 
 
 ## Launching the heartbeat using ROS within a Docker container:
@@ -76,8 +76,6 @@ Sent message: $RXHRB,29620,1386,0,N,0,E,USYD_ROWBOT,3,1*5e
 Sent message: $RXHRB,29620,1387,0,N,0,E,USYD_ROWBOT,3,1*5e
 ...
 ```
-
-
 
 ## Functions and parameters required to transmit task specific status messages:
 
