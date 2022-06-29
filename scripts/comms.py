@@ -14,10 +14,10 @@ TEAMID = 'DESIG' # Assigned by technical director.
 s = 0 # Placeholder for stream socket defined in conman_init()
 
 
-print("Comms Started")
+#print("Comms Started")
 def formatAndSend(header, data, addID=1): # Add header, footer, & checksum to message
     
-    print("Inside foramat and send")
+    #print("Inside foramat and send")
     result = "$" + header + "," # Add to start of message
 
     now = datetime.datetime.now() # Get current time & date.
@@ -44,7 +44,7 @@ def formatAndSend(header, data, addID=1): # Add header, footer, & checksum to me
     global s
     try:
         s.send(result_bytes) # Send message.
-        print("Message: "+result)
+        print("Sent message: "+result)
     except Exception:
         print("Message "+result+" not sent!")
    

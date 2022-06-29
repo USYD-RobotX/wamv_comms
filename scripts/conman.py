@@ -111,7 +111,7 @@ rate = rospy.Rate(1) # Set transmission frequency of 1 Hz.
 
 while not rospy.is_shutdown():
 
-    print("Inside Loop")
+    #print("Inside Loop")
     fakeState = {} # Not sure what this is for ... ?
     conman.send_heartbeat() # Broadcast the heartbeat message
 
